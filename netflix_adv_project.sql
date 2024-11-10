@@ -18,7 +18,7 @@ create table netflix_data (
 
 );
 
-drop table netflix_data;
+
 SHOW VARIABLES LIKE 'secure_file_priv';
 SELECT User, Host FROM mysql.user;
 
@@ -74,13 +74,6 @@ FROM netflix_data
 where TYPE = 'Movie' and Release_year= 2020 ;
 
 #4.	Find the top 5 countries with the most content on Netflix.
--- 1. SPLIT THE COUNTRY WHERE THEY ARE COMBINED 
-
-select DISTINCT(COUNTRY) AS COUNTRY, COUNT(SHOW_ID) AS NO_OF_CONTENT 
-From  netflix_data
-group by COUNTRY
-ORDER BY NO_OF_CONTENT DESC;
-
 
 WITH RECURSIVE CountrySplit AS (
     -- Step 1: Start with the first country in each row
@@ -116,9 +109,9 @@ SELECT
     Duration
 FROM 
     netflix_data
-ORDER BY 													   -- SUBSTRING_INDEX(Duration, ' ', 1) extracts the part of the Duration column before the first space, which is expected to be a number representing the seasons (e.g., "5 seasons" would return "5").
-    CAST(SUBSTRING_INDEX(Duration, ' ', 1) AS UNSIGNED) DESC   -- CAST(... AS UNSIGNED) converts that string (e.g., "5") into a number so it can be treated as an integer.
-    LIMIT 1;                                                   -- By using UNSIGNED, you're ensuring that the number is always non-negative, which is appropriate for counting seasons.
+ORDER BY 													   -
+    CAST(SUBSTRING_INDEX(Duration, ' ', 1) AS UNSIGNED) DESC  
+    LIMIT 1;                                                   
 
 
 #6.	Find content added in the last 5 years.
@@ -146,7 +139,6 @@ order by CAST(SUBSTRING_INDEX(Duration, ' ', 1) AS UNSIGNED) DESC;
 select * from netflix_data ;
 
 WITH RECURSIVE ContentSplit AS (
-    -- Step 1: Start with the first genre in each row
     SELECT 
         SHOW_id, 
         TRIM(SUBSTRING_INDEX(listed_in, ',', 1)) AS genre,
@@ -155,7 +147,6 @@ WITH RECURSIVE ContentSplit AS (
 
     UNION ALL
 
-    -- Step 2: Continuously split the remaining genres
     SELECT 
         SHOW_id, 
         TRIM(SUBSTRING_INDEX(RemainingGenre, ',', 1)) AS genre,
@@ -164,7 +155,6 @@ WITH RECURSIVE ContentSplit AS (
     WHERE RemainingGenre != ''
 )
 
--- Step 3: Count each genre and get the top 5
 SELECT genre, COUNT(*) AS ContentCount
 FROM ContentSplit
 GROUP BY genre
@@ -172,11 +162,6 @@ ORDER BY ContentCount DESC
 LIMIT 5;
 
 #10.Find the average release year for content produced in a specific country.
-
-select Release_year ,country , count(*)
-from netflix_data
-where country='India'
-group by Release_year ;
 
 SELECT extract(year from STR_TO_DATE(date_add, '%M %d, %Y')) as year,count(*)
 FROM netflix_data
@@ -232,31 +217,6 @@ WITH RECURSIVE CastSplit AS (
         TRIM(SUBSTRING_INDEX(casts, ',', 1)) AS cast,
         TRIM(SUBSTRING(casts, LENGTH(SUBSTRING_INDEX(casts, ',', 1)) + 2)) AS Remainingcast
     FROM netflix_data
-	where Country like '%India%'
-
-
-    UNION ALL
-
-    SELECT 
-        SHOW_id, 
-        TRIM(SUBSTRING_INDEX(Remainingcast, ',', 1)) AS cast,
-        TRIM(SUBSTRING(Remainingcast, LENGTH(SUBSTRING_INDEX(Remainingcast, ',', 1)) + 2)) AS Remainingcast
-    FROM CastSplit
-    WHERE Remainingcast != ''
-)
-
-SELECT cast, COUNT(*) AS CastCount
-FROM CastSplit
-GROUP BY cast
-ORDER BY CastCount DESC
-LIMIT 5;
-
-WITH RECURSIVE CastSplit AS (
-    SELECT 
-        SHOW_id, 
-        TRIM(SUBSTRING_INDEX(casts, ',', 1)) AS cast,
-        TRIM(SUBSTRING(casts, LENGTH(SUBSTRING_INDEX(casts, ',', 1)) + 2)) AS Remainingcast
-    FROM netflix_data
 	
 
 
@@ -279,4 +239,12 @@ LIMIT 5;
 
 #15.Categorize content based on keywords "kill" and "violence" in the description field as "Bad" and all other content as "Good." Count how many items fall into each category.
 
+SELECT 
+    CASE 
+        WHEN Description LIKE '%kill%' OR Description LIKE '%violence%' THEN 'Bad' 
+        ELSE 'Good' 
+    END AS Content_Category,
+    COUNT(*) AS Content_Count
+FROM netflix_data
+GROUP BY Content_Category;
 
