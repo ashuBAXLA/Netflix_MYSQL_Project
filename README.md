@@ -52,3 +52,10 @@ create table netflix_data (
 15. Categorize the content based on the presence of the keywords 'kill' and 'violence' in the description field. Label content containing these keywords as 'Bad' and all other content as 'Good'. Count how many items fall into each category.
 
 
+## Languages Used
+
+This repository contains code and projects written in the following languages:
+
+- **SQL**: Used for querying databases and data manipulation.
+
+
