@@ -56,6 +56,9 @@ create table netflix_data (
 
 This repository contains code and projects written in the following languages:
 
-- **SQL**: Used for querying databases and data manipulation.
+- **SQL**: Used for querying and analyzing Netflix's movies and TV shows data.
+- **MySQL**: Used as the database management system for executing SQL queries.
+
+
 
 
